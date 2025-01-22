@@ -30,7 +30,7 @@ from aerial_gym.config.robot_config.base_quad_config import *
 from aerial_gym.config.robot_config.tinyprop_config import TinyPropCfg
 
 
-
+from aerial_gym.robots.bem_quad import BEMQuad
 
 # register the robot classes here
 robot_registry.register("base_quadrotor", BaseMultirotor, BaseQuadCfg)
@@ -56,4 +56,6 @@ robot_registry.register("base_quadrotor_with_faceid_normal_camera", BaseMultirot
 robot_registry.register("base_quadrotor_with_stereo_camera", BaseMultirotor, BaseQuadWithStereoCameraCfg)
 
 robot_registry.register("tinyprop", BaseMultirotor, TinyPropCfg)
+
+robot_registry.register("bem_lmf2", BEMQuad, BaseQuadCfg)
 

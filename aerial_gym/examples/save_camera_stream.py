@@ -22,7 +22,7 @@ if __name__ == "__main__":
     env_manager = SimBuilder().build_env(
         sim_name="base_sim",
         env_name="env_with_obstacles",  # "forest_env", #"empty_env", # empty_env
-        robot_name="base_quadrotor_with_stereo_camera",
+        robot_name="base_quadrotor_with_lidar",
         controller_name="lee_velocity_control",
         args=None,
         device="cuda:0",

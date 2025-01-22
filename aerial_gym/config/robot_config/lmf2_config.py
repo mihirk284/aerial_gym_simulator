@@ -163,12 +163,12 @@ class LMF2Cfg:
 
         class motor_model_config:
             use_rps = True
-            motor_thrust_constant_min = 0.00000926312
-            motor_thrust_constant_max = 0.00001826312
-            motor_time_constant_increasing_min = 0.05
-            motor_time_constant_increasing_max = 0.08
-            motor_time_constant_decreasing_min = 0.005
-            motor_time_constant_decreasing_max = 0.005
+            motor_thrust_constant_min = 1.877*10**-6
+            motor_thrust_constant_max = 1.877*10**-6
+            motor_time_constant_increasing_min = 0.04
+            motor_time_constant_increasing_max = 0.04
+            motor_time_constant_decreasing_min = 0.01
+            motor_time_constant_decreasing_max = 0.01
             max_thrust = 10.0
             min_thrust = 0.1
             max_thrust_rate = 100000.0
