@@ -8,6 +8,7 @@ from aerial_gym.config.robot_config.base_quad_root_link_control_config import (
 )
 
 from aerial_gym.config.robot_config.lmf2_config import LMF2Cfg
+from aerial_gym.config.robot_config.lmf1_config import LMF1Cfg
 from aerial_gym.config.robot_config.morphy_config import MorphyCfg, MorphyFixedBaseCfg
 from aerial_gym.config.robot_config.morphy_stiff_config import MorphyStiffCfg
 from aerial_gym.config.robot_config.snakey_config import SnakeyCfg
@@ -43,6 +44,7 @@ robot_registry.register("snakey5", BaseReconfigurable, Snakey5Cfg)
 robot_registry.register("snakey6", BaseReconfigurable, Snakey6Cfg)
 robot_registry.register("base_rov", BaseROV, BaseROVCfg)
 robot_registry.register("lmf2", BaseMultirotor, LMF2Cfg)
+robot_registry.register("lmf1", BaseMultirotor, LMF1Cfg)
 
 robot_registry.register("tinyprop", BaseMultirotor, TinyPropCfg)
 

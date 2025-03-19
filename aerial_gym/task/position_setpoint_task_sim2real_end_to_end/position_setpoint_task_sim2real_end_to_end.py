@@ -150,6 +150,7 @@ class PositionSetpointTaskSim2RealEndToEnd(BaseTask):
         self.infos = {}
         self.sim_env.reset_idx(env_ids)
         self.action_history[env_ids] = 0.0
+        self.prev_pos_error[env_ids] = 0.0
         return
 
     def render(self):
@@ -202,7 +203,7 @@ class PositionSetpointTaskSim2RealEndToEnd(BaseTask):
         )
 
     def process_obs_for_task(self):
-        sim_with_noise = 1.
+        sim_with_noise = 0.
         
         pos_noise = torch.normal(mean=torch.zeros_like(self.obs_dict["robot_position"]), std=0.001) * sim_with_noise
         obs_pos_noisy = (self.target_position - self.obs_dict["robot_position"]) + pos_noise
@@ -223,6 +224,11 @@ class PositionSetpointTaskSim2RealEndToEnd(BaseTask):
         self.task_obs["observations"][:, 3:9] = matrix_to_rotation_6d(or_matr_with_noise) 
         self.task_obs["observations"][:, 9:12] = obs_linvel_noisy
         self.task_obs["observations"][:, 12:15] = ang_vel_noisy
+        
+        # self.task_obs["observations"][:, 0:3] = quat_rotate_inverse(self.obs_dict["robot_orientation"], obs_pos_noisy)
+        # self.task_obs["observations"][:, 3:6] = self.obs_dict["robot_euler_angles"]
+        # self.task_obs["observations"][:, 6:9] = obs_linvel_noisy
+        # self.task_obs["observations"][:, 9:12] = ang_vel_noisy
 
         self.task_obs["rewards"] = self.rewards
         self.task_obs["terminations"] = self.terminations
@@ -264,6 +270,65 @@ def exp_penalty_func(x, gain, exp):
     return gain * (torch.exp(-exp * x * x) - 1)
 
 
+# def compute_reward(
+#                      pos_error, 
+#                      quats, 
+#                      linvels_err, 
+#                      angvels_err, 
+#                      crashes, 
+#                      action_input,
+#                      prev_action, 
+#                      prev_pos_error,
+#                      crash_dist):
+    
+#     target_dist = torch.norm(pos_error[:, :3], dim=1)
+    
+#     prev_target_dist = torch.norm(prev_pos_error, dim=1)
+
+#     pos_reward_sharp = torch.sum(exp_func(pos_error, 3., 9.0), dim=1)
+#     pos_reward_smooth = torch.sum(exp_func(pos_error[:, :3], 2.0, 4.0), dim=1)
+#     pos_reward = pos_reward_sharp + pos_reward_smooth
+
+#     ups = quat_axis(quats, 2)
+#     tiltage = 1 - ups[..., 2]
+#     upright_reward = exp_func(tiltage, 2.5, 8.0) + exp_func(tiltage, 1.5, 2.0)
+    
+#     rpy = ssa(get_euler_xyz_tensor(quats))
+#     yaw = rpy[:, 2]
+#     alignment_reward = exp_func(yaw, 1.0, 6.0)
+
+#     # angvels_err[:, 2] = angvels_err[:, 2] * 3.0
+#     angvel_reward = torch.sum(exp_penalty_func(angvels_err*angvels_err, 2.50 , 6.0), dim=1)
+#     vel_reward = torch.sum(exp_func(linvels_err, 2.5, 6.0), dim=1)
+    
+#     action_input_offset = action_input - 9.81 * 1.2350000515580177/4
+#     action_cost = torch.sum(exp_func(action_input_offset, 0.20, 5.0), dim=1)
+    
+#     closer_by_dist = prev_target_dist - target_dist 
+#     towards_goal_reward = torch.where(closer_by_dist >= 0, 10*closer_by_dist, 20*closer_by_dist)
+
+#     action_difference = action_input - prev_action
+#     action_difference_penalty = torch.sum(exp_penalty_func(action_difference, 0.2, 6.0), dim=1)
+
+#     # reward = towards_goal_reward + (pos_reward * (alignment_reward + vel_reward + angvel_reward + action_difference_penalty) + (angvel_reward + vel_reward + upright_reward + pos_reward + action_cost))/5.0
+
+#     # reward = 0.1 * (
+#     #     towards_goal_reward +
+#     #     (pos_reward +  1) * (upright_reward + vel_reward + angvel_reward + alignment_reward ) + action_cost + action_difference_penalty + towards_goal_reward
+#     # )
+
+#     reward = 0.1*(
+#         # towards_goal_reward +
+#         (pos_reward_sharp + 1 ) * ( upright_reward + vel_reward + angvel_reward + action_difference_penalty + action_cost + 1) + alignment_reward - 1 + pos_reward_smooth
+#     )
+      
+#     crashes[:] = torch.where(target_dist > crash_dist, torch.ones_like(crashes), crashes)
+
+#     reward[:] = torch.where(crashes == 1, -20.0, reward)
+    
+#     return reward, crashes
+
+
 def compute_reward(
                      pos_error, 
                      quats, 
@@ -288,24 +353,25 @@ def compute_reward(
     
     forw = quat_axis(quats, 0)
     alignment = 1 - forw[..., 0]
-    alignment_reward = exp_func(alignment, 6., 5.0)
+    alignment_reward = exp_func(alignment, 4., 5.0) + exp_func(alignment, 2., 2.0)
 
-    angvel_reward = torch.sum(exp_func(angvels_err, .3 , 10.0), dim=1)
+    angvel_reward = torch.sum(exp_func(angvels_err, .75 , 10.0), dim=1)
     vel_reward = torch.sum(exp_func(linvels_err, 1., 5.0), dim=1)
     
-    action_input_offset = action_input - 9.81 * 0.372/4
+    action_input_offset = action_input - 9.81 * 1.2350000515580177/4
     action_cost = torch.sum(exp_penalty_func(action_input_offset, 0.01, 10.0), dim=1)
     
     closer_by_dist = prev_target_dist - target_dist 
-    towards_goal_reward = torch.where(closer_by_dist >= 0, 10*closer_by_dist, 15*closer_by_dist)
+    towards_goal_reward = torch.where(closer_by_dist >= 0, 50*closer_by_dist, 100*closer_by_dist)
 
     action_difference = action_input - prev_action
-    action_difference_penalty = torch.sum(exp_penalty_func(action_difference, 1.3, 6.0), dim=1)
+    action_difference_penalty = torch.sum(exp_penalty_func(action_difference, 0.5, 6.0), dim=1)
 
     reward = towards_goal_reward + (pos_reward * (alignment_reward + vel_reward + angvel_reward + action_difference_penalty) + (angvel_reward + vel_reward + upright_reward + pos_reward + action_cost)) / 100.0
       
     crashes[:] = torch.where(target_dist > crash_dist, torch.ones_like(crashes), crashes)
     
     return reward, crashes
+
 
 
