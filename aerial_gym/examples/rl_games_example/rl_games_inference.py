@@ -7,10 +7,10 @@ import torch.nn.functional as F
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, path):
         super().__init__()
-        self.input_fc = nn.Linear(input_dim, 256)
-        self.hidden_fc1 = nn.Linear(256, 128)
-        self.hidden_fc2 = nn.Linear(128, 64)
-        self.output_fc = nn.Linear(64, output_dim)
+        self.input_fc = nn.Linear(input_dim, 64)
+        self.hidden_fc1 = nn.Linear(64, 32)
+        # self.hidden_fc2 = nn.Linear(128, 64)
+        self.output_fc = nn.Linear(32, output_dim)
 
         self.network = nn.Sequential(
             OrderedDict(
@@ -19,9 +19,10 @@ class MLP(nn.Module):
                     ("elu1", nn.ELU()),
                     ("2", self.hidden_fc1),
                     ("elu2", nn.ELU()),
-                    ("4", self.hidden_fc2),
-                    ("elu3", nn.ELU()),
+                    # ("4", self.hidden_fc2),
+                    # ("elu3", nn.ELU()),
                     ("mu", self.output_fc),
+
                 ]
             )
         )

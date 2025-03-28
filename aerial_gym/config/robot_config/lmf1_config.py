@@ -150,7 +150,7 @@ class LMF1Cfg:
         force_application_level = "motor_link"  # "motor_link" or "root_link" decides to apply combined forces acting on the robot at the root link or at the individual motor links
 
         application_mask = [4, 1, 3, 2] # front right, back_left, front_left, back_right
-        motor_directions = [1, -1, 1, -1]
+        motor_directions = [1, 1, -1, -1]
 
         allocation_matrix = [
             [0.0, 0.0, 0.0, 0.0],
@@ -158,19 +158,19 @@ class LMF1Cfg:
             [1.0, 1.0, 1.0, 1.0],
             [-0.13, 0.13, 0.13, -0.13],
             [-0.13, 0.13, -0.13, 0.13],
-            [-0.05, 0.05, -0.05, 0.05],
+            [-0.025, 0.025, -0.025, 0.025],
         ]
 
         class motor_model_config:
             use_rps = True
             motor_thrust_constant_min = 5.487e-6 #0.00000926312
             motor_thrust_constant_max = 5.487e-6 #0.00001826312
-            motor_time_constant_increasing_min = 0.025
-            motor_time_constant_increasing_max = 0.025
-            motor_time_constant_decreasing_min = 0.025
-            motor_time_constant_decreasing_max = 0.025
+            motor_time_constant_increasing_min = 0.01
+            motor_time_constant_increasing_max = 0.01
+            motor_time_constant_decreasing_min = 0.01
+            motor_time_constant_decreasing_max = 0.01
             max_thrust = 20.0
             min_thrust = 0.0
             max_thrust_rate = 100000.0
-            thrust_to_torque_ratio = 0.05
+            thrust_to_torque_ratio = 0.025
             use_discrete_approximation = False  # use discrete approximation for motor dynamics

@@ -39,7 +39,7 @@ else:
         robot_name = "lmf1"
         controller_name = "no_control" 
         args = {}
-        num_envs = 4096
+        num_envs = 24
         use_warp = False
         headless = False
         device = "cuda:0"
